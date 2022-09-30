@@ -24,7 +24,6 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.udfsoft.screenfactorygenerator.annotation.JParam
 import com.udfsoft.screenfactorygenerator.annotation.JScreen
-import com.udfsoft.screenfactorygenerator.processor.mapper.KsPropertyDeclarationToGetExtraString
 import com.udfsoft.screenfactorygenerator.utils.IoUtils.plusAssign
 import com.udfsoft.screenfactorygenerator.utils.Utils.findAnnotation
 import com.udfsoft.screenfactorygenerator.utils.Utils.findArgument
@@ -32,7 +31,7 @@ import com.udfsoft.screenfactorygenerator.utils.Utils.getDeclaredPropertiesWithA
 import com.udfsoft.screenfactorygenerator.utils.Utils.isChildForClass
 import java.io.OutputStream
 
-class ActivityVisitor(
+class FragmentVisitor(
     private val file: OutputStream,
     private val className: String,
     private val logger: KSPLogger,
@@ -44,10 +43,10 @@ class ActivityVisitor(
             return
         }
 
-        val isActivity = classDeclaration.isChildForClass("Activity")
+        val isFragment = classDeclaration.isChildForClass("Fragment")
 
-        if (!isActivity) {
-            logger.error("Class must be inherited from Activity", classDeclaration)
+        if (!isFragment) {
+            logger.error("Class must be inherited from Fragment", classDeclaration)
             return
         }
 
@@ -59,11 +58,9 @@ class ActivityVisitor(
             classDeclaration.getDeclaredPropertiesWithAnnotation(JParam::class.simpleName!!)
 
         if (generateScreenMethodArgument.value == true) {
-            file += "import com.github.terrakok.cicerone.androidx.ActivityScreen\n"
+            file += "import com.github.terrakok.cicerone.androidx.FragmentScreen\n"
         }
 
-        file += "import android.content.Context\n"
-        file += "import android.content.Intent\n"
         file += "import androidx.core.os.bundleOf\n"
         file += "import androidx.fragment.app.Fragment\n"
         file += "import com.udfsoft.screenfactorygenerator.BaseScreen\n\n"
@@ -71,32 +68,27 @@ class ActivityVisitor(
         file += "object ${className}Screen : BaseScreen {\n\n"
 
         file += if (params.toList().isEmpty()) {
-            "    fun newIntent(context: Context) = Intent(context, ${className}::class.java)\n\n"
+            "    fun newInstance() = ${className}()\n\n"
         } else {
+
             val paramsForSetArguments = params.map {
-                "intent.putExtra(\"${it.toString().uppercase()}\", $it)"
-            }.joinToString("\n")
+                "\"${it.toString().uppercase()}\" to $it"
+            }.joinToString(",")
 
             val paramsInString = params.map {
                 "$it: ${it.type}"
             }.joinToString()
 
-            logger.warn("visitClassDeclaration: paramsInString=${paramsForSetArguments}")
-
-            "    fun newIntent(context: Context, $paramsInString): Intent { \n" +
-                    "       val intent = Intent(context, ${className}::class.java)\n" +
-                    "       $paramsForSetArguments\n" +
-                    "       return intent\n" +
+            "    fun newInstance($paramsInString) = ${className}().apply {\n" +
+                    "       arguments = bundleOf($paramsForSetArguments)\n" +
                     "    }\n\n"
         }
 
         file += "    fun ${className}.bind() {\n"
 
-        val paramsForGetArguments = params.map(KsPropertyDeclarationToGetExtraString()::transform)
-            .joinToString("\n")
-
-        logger.warn("visitClassDeclaration: paramsForGetArguments=${paramsForGetArguments}")
-
+        val paramsForGetArguments = params.map {
+            "       $it = arguments?.get(\"${it.toString().uppercase()}\") as ${it.type}"
+        }.joinToString("\n")
 
         file += "$paramsForGetArguments\n"
         file += "    }\n"
@@ -104,7 +96,7 @@ class ActivityVisitor(
         if (generateScreenMethodArgument.value == true) {
             file += "\n"
             file += if (params.toList().isEmpty()) {
-                "    fun get${className}Screen() = ActivityScreen { newIntent(it) }\n"
+                "    fun get${className}Screen() = FragmentScreen { newInstance() }\n"
             } else {
 
                 val paramsWithTypeInString = params.map {
@@ -115,8 +107,8 @@ class ActivityVisitor(
                     "$it"
                 }.joinToString()
 
-                "    fun get${className}Screen($paramsWithTypeInString) = ActivityScreen {\n" +
-                        "       newIntent(it, $paramsInString)\n" +
+                "    fun get${className}Screen($paramsWithTypeInString) = FragmentScreen {\n" +
+                        "       newInstance($paramsInString)\n" +
                         "   }\n"
             }
         }

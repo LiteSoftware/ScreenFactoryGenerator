@@ -24,6 +24,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.udfsoft.screenfactorygenerator.annotation.JParam
 import com.udfsoft.screenfactorygenerator.annotation.JScreen
+import com.udfsoft.screenfactorygenerator.processor.mapper.KsPropertyDeclarationToGetExtraString
 import com.udfsoft.screenfactorygenerator.utils.IoUtils.plusAssign
 import com.udfsoft.screenfactorygenerator.utils.Utils.findAnnotation
 import com.udfsoft.screenfactorygenerator.utils.Utils.findArgument
@@ -31,7 +32,7 @@ import com.udfsoft.screenfactorygenerator.utils.Utils.getDeclaredPropertiesWithA
 import com.udfsoft.screenfactorygenerator.utils.Utils.isChildForClass
 import java.io.OutputStream
 
-class FragmentVisitor(
+class ActivityVisitor(
     private val file: OutputStream,
     private val className: String,
     private val logger: KSPLogger,
@@ -43,10 +44,10 @@ class FragmentVisitor(
             return
         }
 
-        val isFragment = classDeclaration.isChildForClass("Fragment")
+        val isActivity = classDeclaration.isChildForClass("Activity")
 
-        if (!isFragment) {
-            logger.error("Class must be inherited from Fragment", classDeclaration)
+        if (!isActivity) {
+            logger.error("Class must be inherited from Activity", classDeclaration)
             return
         }
 
@@ -58,10 +59,11 @@ class FragmentVisitor(
             classDeclaration.getDeclaredPropertiesWithAnnotation(JParam::class.simpleName!!)
 
         if (generateScreenMethodArgument.value == true) {
-//        import com.github.terrakok.cicerone.androidx.ActivityScreen
-            file += "import com.github.terrakok.cicerone.androidx.FragmentScreen\n"
+            file += "import com.github.terrakok.cicerone.androidx.ActivityScreen\n"
         }
 
+        file += "import android.content.Context\n"
+        file += "import android.content.Intent\n"
         file += "import androidx.core.os.bundleOf\n"
         file += "import androidx.fragment.app.Fragment\n"
         file += "import com.udfsoft.screenfactorygenerator.BaseScreen\n\n"
@@ -69,32 +71,27 @@ class FragmentVisitor(
         file += "object ${className}Screen : BaseScreen {\n\n"
 
         file += if (params.toList().isEmpty()) {
-            "    fun newInstance() = ${className}()\n\n"
+            "    fun newIntent(context: Context) = Intent(context, ${className}::class.java)\n\n"
         } else {
-
             val paramsForSetArguments = params.map {
-                "\"${it.toString().uppercase()}\" to $it"
-            }.joinToString(",")
+                "intent.putExtra(\"${it.toString().uppercase()}\", $it)"
+            }.joinToString("\n")
 
             val paramsInString = params.map {
                 "$it: ${it.type}"
             }.joinToString()
 
-            logger.warn("visitClassDeclaration: paramsInString=${paramsForSetArguments}")
-
-            "    fun newInstance($paramsInString) = ${className}().apply {\n" +
-                    "       arguments = bundleOf($paramsForSetArguments)\n" +
+            "    fun newIntent(context: Context, $paramsInString): Intent { \n" +
+                    "       val intent = Intent(context, ${className}::class.java)\n" +
+                    "       $paramsForSetArguments\n" +
+                    "       return intent\n" +
                     "    }\n\n"
         }
 
         file += "    fun ${className}.bind() {\n"
 
-        val paramsForGetArguments = params.map {
-            "       $it = arguments?.get(\"${it.toString().uppercase()}\") as ${it.type}"
-        }.joinToString("\n")
-
-        logger.warn("visitClassDeclaration: paramsForGetArguments=${paramsForGetArguments}")
-
+        val paramsForGetArguments = params.map(KsPropertyDeclarationToGetExtraString()::transform)
+            .joinToString("\n")
 
         file += "$paramsForGetArguments\n"
         file += "    }\n"
@@ -102,7 +99,7 @@ class FragmentVisitor(
         if (generateScreenMethodArgument.value == true) {
             file += "\n"
             file += if (params.toList().isEmpty()) {
-                "    fun get${className}Screen() = FragmentScreen { newInstance() }\n"
+                "    fun get${className}Screen() = ActivityScreen { newIntent(it) }\n"
             } else {
 
                 val paramsWithTypeInString = params.map {
@@ -113,8 +110,8 @@ class FragmentVisitor(
                     "$it"
                 }.joinToString()
 
-                "    fun get${className}Screen($paramsWithTypeInString) = FragmentScreen {\n" +
-                        "       newInstance($paramsInString)\n" +
+                "    fun get${className}Screen($paramsWithTypeInString) = ActivityScreen {\n" +
+                        "       newIntent(it, $paramsInString)\n" +
                         "   }\n"
             }
         }

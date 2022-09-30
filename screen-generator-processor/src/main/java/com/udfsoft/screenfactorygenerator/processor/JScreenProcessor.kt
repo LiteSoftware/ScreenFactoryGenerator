@@ -17,7 +17,6 @@
 
 package com.udfsoft.screenfactorygenerator.processor
 
-import com.google.devtools.ksp.getAllSuperTypes
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
@@ -49,8 +48,6 @@ class JScreenProcessor(
         val dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray())
         symbols.forEach {
             logger.warn("Symbol: $it")
-            logger.warn("Symbol: ${it.getAllSuperTypes().toList()}")
-            logger.warn("Symbol: ${it.classKind.type}")
             val packageName = it.containingFile!!.packageName.asString()
             val className = it.qualifiedName!!.asString().substringAfter("${packageName}.")
             val screenClassName = "${className}Screen"
@@ -70,8 +67,7 @@ class JScreenProcessor(
         }
 
         processed = true
-        val unableToProcess = symbols.filterNot { it.validate() }.toList()
 
-        return unableToProcess
+        return symbols.filterNot { it.validate() }.toList()
     }
 }

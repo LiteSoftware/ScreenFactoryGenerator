@@ -13,8 +13,8 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "ScreenFactoryGenerator"
-include ':processor'
-include ':annotation'
+include ':screen-generator-processor'
+include ':screen-generator-annotation'
 
 if (!System.env.JITPACK)
     include ':app'
