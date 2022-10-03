@@ -46,11 +46,11 @@ android {
 }
 
 dependencies {
-//    implementation project(':screen-generator-annotation')
-//    ksp project(':screen-generator-processor')
+    implementation project(':screen-generator-annotation')
+    ksp project(':screen-generator-processor')
 // or
-    implementation 'com.github.LiteSoftware.ScreenFactoryGenerator:annotation:1.0.0'
-    ksp 'com.github.LiteSoftware.ScreenFactoryGenerator:processor:1.0.0'
+//    implementation 'com.github.LiteSoftware.ScreenFactoryGenerator:annotation:1.0.0'
+//    ksp 'com.github.LiteSoftware.ScreenFactoryGenerator:processor:1.0.0'
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'

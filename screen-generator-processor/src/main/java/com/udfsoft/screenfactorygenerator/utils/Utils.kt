@@ -41,4 +41,12 @@ object Utils {
     fun List<KSValueArgument>.findArgument(argumentName: String) = first {
         it.name?.getShortName() == argumentName
     }
+
+    fun StringBuilder.replaceFirst(oldValue: String, replacement: String): StringBuilder {
+        val text = toString().replaceFirst(oldValue, replacement)
+        clear()
+        append(text)
+
+        return this
+    }
 }

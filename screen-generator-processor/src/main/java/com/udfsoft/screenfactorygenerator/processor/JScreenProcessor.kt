@@ -26,6 +26,7 @@ import com.udfsoft.screenfactorygenerator.processor.visitor.ActivityVisitor
 import com.udfsoft.screenfactorygenerator.processor.visitor.FragmentVisitor
 import com.udfsoft.screenfactorygenerator.utils.IoUtils.plusAssign
 import com.udfsoft.screenfactorygenerator.utils.Utils.isChildForClass
+import com.udfsoft.screenfactorygenerator.utils.Utils.replaceFirst
 
 class JScreenProcessor(
     private val codeGenerator: CodeGenerator,
@@ -45,6 +46,26 @@ class JScreenProcessor(
         // Exit from the processor in case nothing is annotated with @JScreen.
         if (!symbols.iterator().hasNext()) return emptyList()
 
+        val screenManagerPackage = "com.udfsoft.screenfactorygenerator"
+        val screenManagerClassName = "ScreenManager"
+
+        val screenManagerClassStringBuilder =
+            StringBuilder().appendLine("package $screenManagerPackage")
+                .appendLine()
+                .appendLine("import android.app.Activity")
+                .appendLine("import androidx.fragment.app.Fragment")
+                .appendLine()
+                .appendLine("object $screenManagerClassName {")
+                .appendLine()
+                .appendLine("    fun initArguments(activity: Activity) {")
+                .appendLine("        // initArguments(Activities)")
+                .appendLine("    }")
+                .appendLine()
+                .appendLine("    fun initArguments(fragment: Fragment) {")
+                .appendLine("        // initArguments(Fragments)")
+                .appendLine("    }")
+                .appendLine("}")
+
         val dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray())
         symbols.forEach {
             logger.warn("Symbol: $it")
@@ -61,10 +82,22 @@ class JScreenProcessor(
             if (it.isChildForClass("Fragment")) {
                 it.accept(FragmentVisitor(sourceFile, className, logger), Unit)
             } else if (it.isChildForClass("Activity")) {
-                it.accept(ActivityVisitor(sourceFile, className, logger), Unit)
+                it.accept(ActivityVisitor(sourceFile, className, logger, screenManagerClassStringBuilder), Unit)
             }
             sourceFile.close()
         }
+
+        logger.warn("screenManager2: $screenManagerClassStringBuilder")
+
+        val screenManagerFile = codeGenerator.createNewFile(
+            dependencies = dependencies,
+            packageName = screenManagerPackage,
+            fileName = screenManagerClassName
+        )
+
+        screenManagerFile += screenManagerClassStringBuilder.toString()
+
+        screenManagerFile.close()
 
         processed = true
 

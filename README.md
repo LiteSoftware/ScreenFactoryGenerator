@@ -14,7 +14,7 @@ object MainFragmentScreen : BaseScreen {
        arguments = bundleOf("TEST1" to test1,"TEST2" to test2)
     }
 
-    fun MainFragment.bind() {
+    fun MainFragment.initArguments() {
        test1 = arguments?.get("TEST1") as Int
        test2 = arguments?.get("TEST2") as String
     }
@@ -34,7 +34,7 @@ object MainActivityScreen : BaseScreen {
        return intent
     }
 
-    fun MainActivity.bind() {
+    fun MainActivity.initArguments() {
        test1 = intent.getStringExtra("TEST1")!!
     }
 }
@@ -120,7 +120,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         // ...
-        bind() // must be called in order to fill in your arguments
+        initArguments() // must be called in order to fill in your arguments
     }
 ```
 
