@@ -6,11 +6,10 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.example.screenfactorygeneratorsample.Main2ActivityScreen.initArguments
 import com.example.screenfactorygeneratorsample.databinding.ActivityMain2Binding
-import com.udfsoft.screenfactorygenerator.ScreenManager
 import com.udfsoft.screenfactorygenerator.annotation.JParam
 import com.udfsoft.screenfactorygenerator.annotation.JScreen
 
-@JScreen(generateScreenMethod = false)
+@JScreen()
 class Main2Activity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMain2Binding

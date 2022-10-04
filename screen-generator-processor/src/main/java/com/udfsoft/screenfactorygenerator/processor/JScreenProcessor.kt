@@ -100,8 +100,6 @@ class JScreenProcessor(
             sourceFile.close()
         }
 
-        logger.warn("screenManager2: $screenManagerClassStringBuilder")
-
         val screenManagerFile = codeGenerator.createNewFile(
             dependencies = dependencies,
             packageName = screenManagerPackage,
