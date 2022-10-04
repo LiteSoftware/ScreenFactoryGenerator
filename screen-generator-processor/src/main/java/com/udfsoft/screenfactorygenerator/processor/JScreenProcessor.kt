@@ -26,7 +26,6 @@ import com.udfsoft.screenfactorygenerator.processor.visitor.ActivityVisitor
 import com.udfsoft.screenfactorygenerator.processor.visitor.FragmentVisitor
 import com.udfsoft.screenfactorygenerator.utils.IoUtils.plusAssign
 import com.udfsoft.screenfactorygenerator.utils.Utils.isChildForClass
-import com.udfsoft.screenfactorygenerator.utils.Utils.replaceFirst
 
 class JScreenProcessor(
     private val codeGenerator: CodeGenerator,
@@ -80,9 +79,23 @@ class JScreenProcessor(
             sourceFile += "package $packageName\n\n"
 
             if (it.isChildForClass("Fragment")) {
-                it.accept(FragmentVisitor(sourceFile, className, logger), Unit)
+                it.accept(
+                    FragmentVisitor(
+                        sourceFile,
+                        className,
+                        logger,
+                        screenManagerClassStringBuilder
+                    ), Unit
+                )
             } else if (it.isChildForClass("Activity")) {
-                it.accept(ActivityVisitor(sourceFile, className, logger, screenManagerClassStringBuilder), Unit)
+                it.accept(
+                    ActivityVisitor(
+                        sourceFile,
+                        className,
+                        logger,
+                        screenManagerClassStringBuilder
+                    ), Unit
+                )
             }
             sourceFile.close()
         }

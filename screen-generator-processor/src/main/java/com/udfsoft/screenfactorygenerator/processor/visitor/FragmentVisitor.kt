@@ -18,101 +18,84 @@
 package com.udfsoft.screenfactorygenerator.processor.visitor
 
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.ClassKind
-import com.google.devtools.ksp.symbol.KSAnnotation
-import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSVisitorVoid
-import com.udfsoft.screenfactorygenerator.annotation.JParam
-import com.udfsoft.screenfactorygenerator.annotation.JScreen
-import com.udfsoft.screenfactorygenerator.utils.IoUtils.plusAssign
-import com.udfsoft.screenfactorygenerator.utils.Utils.findAnnotation
-import com.udfsoft.screenfactorygenerator.utils.Utils.findArgument
-import com.udfsoft.screenfactorygenerator.utils.Utils.getDeclaredPropertiesWithAnnotation
-import com.udfsoft.screenfactorygenerator.utils.Utils.isChildForClass
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.KSValueArgument
 import java.io.OutputStream
 
 class FragmentVisitor(
-    private val file: OutputStream,
-    private val className: String,
+    file: OutputStream,
+    className: String,
     private val logger: KSPLogger,
-) : KSVisitorVoid() {
+    screenManagerClassStringBuilder: StringBuilder
+) : BaseVisitor(file, className, logger, screenManagerClassStringBuilder) {
 
-    override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
-        if (classDeclaration.classKind != ClassKind.CLASS) {
-            logger.error("Only class can be annotated with @JScreen", classDeclaration)
-            return
-        }
+    override fun getParentClassString() = FRAGMENT_CLASS_NAME
 
-        val isFragment = classDeclaration.isChildForClass("Fragment")
-
-        if (!isFragment) {
-            logger.error("Class must be inherited from Fragment", classDeclaration)
-            return
-        }
-
-        val annotation: KSAnnotation = classDeclaration.findAnnotation(JScreen::class.simpleName!!)
-
-        val generateScreenMethodArgument = annotation.arguments.findArgument("generateScreenMethod")
-
-        val params =
-            classDeclaration.getDeclaredPropertiesWithAnnotation(JParam::class.simpleName!!)
-
+    override fun getImportForGenericClass(
+        generateScreenMethodArgument: KSValueArgument
+    ) = buildString {
         if (generateScreenMethodArgument.value == true) {
-            file += "import com.github.terrakok.cicerone.androidx.FragmentScreen\n"
+            appendLine("import com.github.terrakok.cicerone.androidx.FragmentScreen")
         }
 
-        file += "import androidx.core.os.bundleOf\n"
-        file += "import androidx.fragment.app.Fragment\n"
-        file += "import com.udfsoft.screenfactorygenerator.BaseScreen\n\n"
+        appendLine("import androidx.core.os.bundleOf")
+        appendLine("import androidx.fragment.app.Fragment")
+        appendLine("import com.udfsoft.screenfactorygenerator.BaseScreen\n")
+    }
 
-        file += "object ${className}Screen : BaseScreen {\n\n"
+    override fun getClassBody(
+        params: Sequence<KSPropertyDeclaration>,
+        generateScreenMethodArgument: KSValueArgument,
+        className: String
+    ) = buildString {
+        appendLine(
+            if (params.toList().isEmpty()) {
+                "    fun newInstance() = ${className}()\n"
+            } else {
 
-        file += if (params.toList().isEmpty()) {
-            "    fun newInstance() = ${className}()\n\n"
-        } else {
+                val paramsForSetArguments = params.map {
+                    "\"${it.toString().uppercase()}\" to $it"
+                }.joinToString(",")
 
-            val paramsForSetArguments = params.map {
-                "\"${it.toString().uppercase()}\" to $it"
-            }.joinToString(",")
+                val paramsInString = params.map {
+                    "$it: ${it.type}"
+                }.joinToString()
 
-            val paramsInString = params.map {
-                "$it: ${it.type}"
-            }.joinToString()
+                "    fun newInstance($paramsInString) = ${className}().apply {\n" +
+                        "       arguments = bundleOf($paramsForSetArguments)\n" +
+                        "    }\n"
+            }
+        )
 
-            "    fun newInstance($paramsInString) = ${className}().apply {\n" +
-                    "       arguments = bundleOf($paramsForSetArguments)\n" +
-                    "    }\n\n"
-        }
-
-        file += "    fun ${className}.bind() {\n"
+        appendLine("    fun ${className}.initArguments() {")
 
         val paramsForGetArguments = params.map {
             "       $it = arguments?.get(\"${it.toString().uppercase()}\") as ${it.type}"
         }.joinToString("\n")
 
-        file += "$paramsForGetArguments\n"
-        file += "    }\n"
+        appendLine(paramsForGetArguments)
+        appendLine("    }")
 
         if (generateScreenMethodArgument.value == true) {
-            file += "\n"
-            file += if (params.toList().isEmpty()) {
-                "    fun get${className}Screen() = FragmentScreen { newInstance() }\n"
-            } else {
+            appendLine()
+            appendLine(
+                if (params.toList().isEmpty()) {
+                    "    fun get${className}Screen() = FragmentScreen { newInstance() }\n"
+                } else {
 
-                val paramsWithTypeInString = params.map {
-                    "$it: ${it.type}"
-                }.joinToString()
+                    val paramsWithTypeInString = params.map {
+                        "$it: ${it.type}"
+                    }.joinToString()
 
-                val paramsInString = params.map {
-                    "$it"
-                }.joinToString()
+                    val paramsInString = params.map {
+                        "$it"
+                    }.joinToString()
 
-                "    fun get${className}Screen($paramsWithTypeInString) = FragmentScreen {\n" +
-                        "       newInstance($paramsInString)\n" +
-                        "   }\n"
-            }
+                    "    fun get${className}Screen($paramsWithTypeInString) = FragmentScreen {\n" +
+                            "       newInstance($paramsInString)\n" +
+                            "   }\n"
+                }
+            )
         }
-
-        file += "}\n"
     }
 }
