@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.screenfactorygeneratorsample.databinding.ActivityMainBinding
 import com.udfsoft.screenfactorygenerator.annotation.JScreen
 
-@JScreen(generateScreenMethod = false)
+@JScreen()
 class MainActivity : AppCompatActivity() {
 
     //    private lateinit var appBarConfiguration: AppBarConfiguration

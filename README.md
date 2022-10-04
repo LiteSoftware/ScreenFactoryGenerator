@@ -97,9 +97,10 @@ ksp 'com.github.LiteSoftware.ScreenFactoryGenerator:screen-generator-processor:$
 4. Annotate activities or fragments with **@JScreen** annotation
 
 ```kotlin
-@JScreen(generateScreenMethod = false)
+@JScreen()
 class MainActivity : AppCompatActivity() {
 // ...
+}
 ```
 
 5. Add properties as arguments. To do this, you need to mark the parameters with the annotation **@JParam**
@@ -129,6 +130,21 @@ val intent = MainActivityScreen.newIntent(this, "Hello World!!!")
 startActivity(intent)
 ```
 
+
+---
+
+## Supported types
+
+primitive type
+java.lang.String
+java.lang.Boolean
+java.lang.Byte
+java.lang.Character
+java.lang.Short
+java.lang.Integer
+java.lang.Long
+java.lang.Float
+java.lang.Double
 
 ---
 

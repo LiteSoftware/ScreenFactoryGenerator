@@ -13,7 +13,7 @@ import com.udfsoft.screenfactorygenerator.annotation.JScreen
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
-@JScreen(generateScreenMethod = false)
+@JScreen()
 class FirstFragment : Fragment() {
 
     private var _binding: FragmentFirstBinding? = null

@@ -51,7 +51,7 @@ abstract class BaseVisitor(
 
         val annotation: KSAnnotation = classDeclaration.findAnnotation(JScreen::class.simpleName!!)
 
-        val generateScreenMethodArgument = annotation.arguments.findArgument("generateScreenMethod")
+        val generateScreenMethodArgument = annotation.arguments.findArgument(CICERONE_FIELD)
 
         val params =
             classDeclaration.getDeclaredPropertiesWithAnnotation(JParam::class.simpleName!!)
@@ -105,6 +105,7 @@ abstract class BaseVisitor(
     ): String
 
     companion object {
+        private const val CICERONE_FIELD = "generateCiceroneScreenMethod"
         const val FRAGMENT_CLASS_NAME = "Fragment"
         const val ACTIVITY_CLASS_NAME = "Activity"
     }
