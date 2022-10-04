@@ -89,8 +89,8 @@ allprojects {
 
 Then add this dependency to your **module-level** `build.gradle` in `dependencies` section:
 ```groovy
-implementation 'com.github.LiteSoftware.ScreenFactoryGenerator:annotation:$version'
-ksp 'com.github.LiteSoftware.ScreenFactoryGenerator:processor:$version'
+implementation 'com.github.LiteSoftware.ScreenFactoryGenerator:screen-generator-annotation:$version'
+ksp 'com.github.LiteSoftware.ScreenFactoryGenerator:screen-generator-processor:$version'
 
 ```
 
