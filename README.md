@@ -3,6 +3,7 @@
 This lib is needed in order to generate functions for creating **fragments** and **activities**.
 
 
+#### Generated classes:
 ```kotlin
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -136,14 +137,23 @@ startActivity(intent)
 ## Supported types
 
 primitive type
+
 java.lang.String
+
 java.lang.Boolean
+
 java.lang.Byte
+
 java.lang.Character
+
 java.lang.Short
+
 java.lang.Integer
+
 java.lang.Long
+
 java.lang.Float
+
 java.lang.Double
 
 ---
